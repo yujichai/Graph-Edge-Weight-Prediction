@@ -77,13 +77,13 @@ def init_graph_oglb(edgeTrain, weightTrain, rateTrain, edgeTest, weightTest, rat
     selectNegTrain = int(weightNeg.shape[0] * rateTrain)
     selectNegTest = int(weightNeg.shape[0] * rateTest)
 
+    # Shuffle all the ews
     ewTrain = np.concatenate((edgeTrain, weightTrain.reshape((-1, 1))), axis=1)
     ewTest = np.concatenate((edgeTest, weightTest.reshape((-1, 1))), axis=1)
     ewNeg = np.concatenate((edgeNeg, weightNeg.reshape((-1, 1))), axis=1)
-
-    ewTrain = np.random.shuffle(ewTrain)
-    ewTest = np.random.shuffle(ewTest)
-    ewNeg = np.random.shuffle(ewNeg)
+    np.random.shuffle(ewTrain)
+    np.random.shuffle(ewTest)
+    np.random.shuffle(ewNeg)
 
     # Select a portion of the train and test
     ewTrainSelect = ewTrain[0:selectTrain, :]
@@ -94,7 +94,7 @@ def init_graph_oglb(edgeTrain, weightTrain, rateTrain, edgeTest, weightTest, rat
     ewTotalSelect = np.concatenate((ewTrainSelect, ewTestSelect))
     ewTotalSelect = np.concatenate((ewTotalSelect, ewNegSelect))
     ewTotalTestSelect = np.concatenate((ewTestSelect, ewNegTestSelect))
-    edgeTotalSelect, weightTotalSelect = ew_take_average(ewTotalSelect[:,0:2], ewTotalSelect[:,2][0])
+    edgeTotalSelect, weightTotalSelect = ew_take_average(ewTotalSelect[:,0:2], ewTotalSelect[:,2])
 
     GTotal = nx.DiGraph()
     for i, e in enumerate(edgeTotalSelect):
@@ -126,7 +126,6 @@ def run_algorithm(algorithmName, GTrain):
     else:
         raise NameError('Algorithm Name Not Found!')
 
-    print(algorithmName + ' Done')
     return result
 
 def main():
@@ -155,12 +154,6 @@ def main():
     pcc = {}
 
     for step, n in enumerate(trainRates):
-        print(trainEdge)
-        print(trainWeight)
-        print(testEdge)
-        print(testWeight)
-        print(negEdge)
-        print(negWeight)
         GTotal, GTrain = init_graph_oglb(trainEdge, trainWeight, n, testEdge, testWeight, testRate, negEdge, negWeight)
         print('Graph Creation Done')
 
@@ -170,6 +163,7 @@ def main():
                 algorithm_dict[a] = run_algorithm(a, GTrain)
                 rmse[a] = []
                 pcc[a] = []
+                print(a + ' Done')
         #algorithm_dict['lr'] = Linear_Regression(GTotal, GTrain, algorithm_dict['pr'], algorithm_dict['fg'], algorithm_dict['sh'])
 
         for key, value in algorithm_dict.items():
